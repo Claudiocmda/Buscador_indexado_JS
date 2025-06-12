@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Buscador de Streamers</title>
+  <link rel="icon" href="https://static.twitchcdn.net/assets/favicon-32-e29e246c157142c94346.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <img src="logo_twitch_3.jpeg" alt="Twitch Logo">
+  </header>
+
+  <main class = "container">
+    <div class = "buscador">
+      <h2>Busca un streamer</h2>
+      <input type="text" id="searchInput" placeholder="Escribe un nombre..." autocomplete="off" />
+      <div id="suggestions"></div>
+
+    </div>
+    
+    <div class="results" id="results"></div>
+  </main>
+  
+  <script src="app.js"></script>
+
+</body>
+</html>
