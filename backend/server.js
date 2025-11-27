@@ -4,7 +4,7 @@ const path = require('path');
 const { trie } = require('./db');
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -65,3 +65,7 @@ app.get('/info', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
+
+
+//Ejecutar node server.js desde este archivo para correr toda la pagina
+//E ingresar al puerto asignado
