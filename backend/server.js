@@ -1,10 +1,12 @@
 // backend/server.js
 const express = require('express');
 const path = require('path');
-const { trie } = require('./db');
+const { db,trie } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(express.json());
 
 app.use(express.static(path.join(__dirname, '../public')));
 
@@ -60,6 +62,81 @@ app.get('/info', async (req, res) => {
         });
     }
 });
+
+
+
+
+//Endpoint delete , para borrar streamers de la base de datos 
+
+app.delete('/streamers/:name', (req, res) => {
+    const { name } = req.params;
+
+    db.run(
+        "DELETE FROM streamers WHERE name = ?",
+        [name],
+        function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ msg: "Streamer no encontrado" });
+            }
+
+            
+
+            res.json({
+                msg: `Streamer '${name}' eliminado correctamente`
+            });
+        }
+    );
+});
+
+
+
+// Endpoint para agregar followers a  streamers
+
+app.put('/streamers/:name', (req, res) => {
+    const { name } = req.params;
+    const followers = req.body && req.body.followers;
+
+
+    if (followers === undefined) {
+        return res.status(400).json({ error: "followers es requerido" });
+    }
+
+    db.run(
+        "UPDATE streamers SET followers = ? WHERE name = ?",
+        [followers, name],
+        function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            if (this.changes === 0) {
+                return res.status(404).json({ msg: "Streamer no encontrado" });
+            }
+
+            // Actualizar el trie
+            trie.insert(name, followers); // sobrescribe si ya existe
+
+            res.json({
+                msg: `Streamer '${name}' actualizado correctamente`,
+                name,
+                followers
+            });
+        }
+    );
+});
+
+
+
+
+
+
+
+
+
 
 
 app.listen(PORT, () => {
