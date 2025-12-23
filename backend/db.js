@@ -1,27 +1,52 @@
-// backend/db.js
-const sqlite3 = require('sqlite3').verbose();
+const mongoose = require('mongoose');
 const Trie = require('./trie');
-const path = require('path');
+require('dotenv').config({ path: __dirname + '/.env' });
 
-const dbPath = path.join(__dirname, '../streamers.db');
-const db = new sqlite3.Database(dbPath);
+//trie en memoria
 const trie = new Trie();
 
-// Cargar streamers desde la base de datos y construir el trie
-
-
-
-db.all("SELECT name, followers FROM streamers",[], (err, rows) => {
-    if (err) {
-        console.error(err.message);
-        return;
-    }
-
-    rows.forEach(row => {
-        trie.insert(row.name, row.followers);
+//conexion a mongo atlas
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB Atlas conectado"))
+    .catch(err => {
+        console.error("Error conectando a MongoDB:", err.message);
+        process.exit(1);
     });
 
-    console.log("Trie cargado con"+ rows.length + "streamers.");
+
+const streamerSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    followers: {
+        type: Number,
+        required: true,
+        default: 0
+    }
 });
 
-module.exports = { db, trie };
+const Streamer = mongoose.model('Streamer', streamerSchema);
+
+// ===== Cargar streamers y construir el trie =====
+async function loadTrie() {
+    try {
+        const streamers = await Streamer.find({});
+        streamers.forEach(s => {
+            trie.insert(s.name, s.followers);
+        });
+        console.log(`Trie cargado con ${streamers.length} streamers.`);
+    } catch (err) {
+        console.error("Error cargando streamers:", err.message);
+    }
+}
+
+// Ejecutar al iniciar
+loadTrie();
+
+// ===== Exportaciones =====
+module.exports = {
+    Streamer,
+    trie
+};
